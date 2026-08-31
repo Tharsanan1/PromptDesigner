@@ -49,7 +49,7 @@ struct ContentView: View {
 
                 // Temp line while dragging connection
                 if let from = connectingFrom, let end = tempLineEnd, let startBlock = vm.workflow.block(withId: from) {
-                    let start = CGPoint(x: startBlock.position.x + startBlock.size.width, y: startBlock.position.y + startBlock.size.height/2)
+                    let start = CGPoint(x: startBlock.position.x + startBlock.size.width + 10, y: startBlock.position.y + startBlock.size.height/2)
                     Path { p in
                         p.move(to: start)
                         p.addCurve(to: end, control1: CGPoint(x: start.x + 80, y: start.y), control2: CGPoint(x: end.x - 80, y: end.y))
@@ -284,8 +284,8 @@ struct CanvasView: View {
     private var connectionsLayer: some View {
         ForEach(vm.workflow.connections) { conn in
             if let from = vm.workflow.block(withId: conn.from), let to = vm.workflow.block(withId: conn.to) {
-                let s = CGPoint(x: from.position.x + from.size.width, y: from.position.y + from.size.height/2)
-                let e = CGPoint(x: to.position.x, y: to.position.y + to.size.height/2)
+                let s = CGPoint(x: from.position.x + from.size.width + 10, y: from.position.y + from.size.height/2)
+                let e = CGPoint(x: to.position.x - 10, y: to.position.y + to.size.height/2)
                 let isSelected = vm.selectedConnectionId == conn.id
                 ConnectionShape(semantics: conn.semantics, isSelected: isSelected, from: s, to: e, label: conn.label.isEmpty ? conn.semantics.displayName : conn.label)
                     .onTapGesture { vm.selectedConnectionId = conn.id; vm.selectedBlockId = nil }
@@ -308,8 +308,10 @@ struct CanvasView: View {
 
                 HStack(spacing: 0) {
                     ConnectionPort(color: .green, symbol: "arrow.left", help: "Input — drop connection here")
+                        .offset(x: -20)
                     Spacer(minLength: 0)
                     ConnectionPort(color: .accentColor, symbol: "arrow.right", help: "Drag to connect — output")
+                        .offset(x: 20)
                         .gesture(
                             DragGesture(coordinateSpace: .named("canvas"))
                                 .onChanged { v in
@@ -323,7 +325,8 @@ struct CanvasView: View {
                                 }
                         )
                 }
-                .padding(.horizontal, 5)
+                // Ports intentionally overflow the card. They remain in this
+                // node ZStack so SwiftUI does not discard them after positioning.
             }
             .frame(width: block.size.width, height: block.size.height)
                 .position(x: block.position.x + block.size.width/2, y: block.position.y + block.size.height/2)
