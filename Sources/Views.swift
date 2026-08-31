@@ -112,7 +112,14 @@ struct ContentView: View {
 
 struct PaletteView: View {
     @ObservedObject var vm: CanvasViewModel
+    @State private var showConnectionLegend = true
     let columns = [GridItem(.adaptive(minimum: 100), spacing: 8)]
+
+    // These concepts are edge semantics, not nodes. They remain decodable for
+    // older workflow files, but users should create them by connecting blocks.
+    private var blockTypes: [BlockType] {
+        BlockType.allCases.filter { ![.sequence, .delegation, .handoff].contains($0) }
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -120,7 +127,7 @@ struct PaletteView: View {
             Text("Drag or double-click to add").font(.caption).foregroundColor(.secondary).padding(.horizontal, 8)
             ScrollView {
                 LazyVGrid(columns: columns, spacing: 8) {
-                    ForEach(BlockType.allCases) { type in
+                    ForEach(blockTypes) { type in
                         Button(action: { vm.addBlock(type: type) }) {
                             VStack(spacing: 4) {
                                 Image(systemName: type.icon).foregroundColor(type.color)
@@ -131,6 +138,28 @@ struct PaletteView: View {
                     }
                 }.padding(8)
             }
+            Divider()
+            DisclosureGroup("Connection meanings", isExpanded: $showConnectionLegend) {
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("Drag a blue output port to a green input port. Select the resulting line to choose its meaning.")
+                        .font(.caption2)
+                        .foregroundColor(.secondary)
+                    ForEach(ConnectionSemantics.allCases) { semantics in
+                        HStack(spacing: 6) {
+                            Image(systemName: semantics.icon)
+                                .foregroundColor(semantics.color)
+                                .frame(width: 14)
+                            Text(semantics.displayName).font(.caption2)
+                            Spacer()
+                            Text("edge").font(.caption2).foregroundColor(.secondary)
+                        }
+                    }
+                }
+                .padding(.top, 6)
+            }
+            .font(.caption)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
             Divider()
             HStack {
                 Button("Single Task") { vm.updateWorkflow(Workflow.templateSingleTask) }.font(.caption)
