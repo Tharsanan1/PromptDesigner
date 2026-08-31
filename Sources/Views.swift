@@ -65,6 +65,7 @@ struct ContentView: View {
                         Button("Reset") { vm.scale = 1; vm.offset = .zero }
                         Toggle("Grid", isOn: $vm.showGrid)
                         Toggle("Minimap", isOn: $vm.showMinimap)
+                        Text("Ports v2.1").font(.caption2).padding(4).background(Color.green.opacity(0.2)).cornerRadius(4)
                         Spacer()
                         Text("\(vm.workflow.blocks.count) blocks • \(vm.workflow.connections.count) connections").font(.caption).foregroundColor(.secondary)
                     }.padding(8).background(.thinMaterial).cornerRadius(8).padding(8)
@@ -266,7 +267,29 @@ struct CanvasView: View {
 
     private var blocksLayer: some View {
         ForEach(vm.workflow.blocks) { block in
-            BlockView(block: block, isSelected: vm.selectedBlockId == block.id, issues: vm.validationIssues.filter { $0.blockId == block.id })
+            ZStack {
+                BlockView(block: block, isSelected: vm.selectedBlockId == block.id, issues: vm.validationIssues.filter { $0.blockId == block.id })
+
+                HStack(spacing: 0) {
+                    ConnectionPort(color: .green, symbol: "arrow.left", help: "Input — drop connection here")
+                    Spacer(minLength: 0)
+                    ConnectionPort(color: .accentColor, symbol: "arrow.right", help: "Drag to connect — output")
+                        .gesture(
+                            DragGesture(coordinateSpace: .named("canvas"))
+                                .onChanged { v in
+                                    connectingFrom = block.id
+                                    tempLineEnd = v.location
+                                }
+                                .onEnded { v in
+                                    if let target = hitTestBlock(at: v.location) { onConnect(block.id, target) }
+                                    connectingFrom = nil
+                                    tempLineEnd = nil
+                                }
+                        )
+                }
+                .padding(.horizontal, 5)
+            }
+            .frame(width: block.size.width, height: block.size.height)
                 .position(x: block.position.x + block.size.width/2, y: block.position.y + block.size.height/2)
                 .gesture(
                     DragGesture(coordinateSpace: .local)
@@ -278,36 +301,6 @@ struct CanvasView: View {
                         .onEnded { _ in dragStart = nil; vm.endMove() }
                 )
                 .onTapGesture { vm.selectedBlockId = block.id; vm.selectedConnectionId = nil }
-                .overlay(alignment: .trailing) {
-                    ZStack {
-                        Circle().fill(Color.white).frame(width: 20, height: 20).shadow(color: .black.opacity(0.2), radius: 2)
-                        Circle().fill(Color.accentColor).frame(width: 14, height: 14)
-                        Image(systemName: "arrow.right").font(.system(size: 7, weight: .bold)).foregroundColor(.white)
-                    }
-                    .offset(x: 10, y: 0)
-                    .contentShape(Circle())
-                    .gesture(
-                        DragGesture(coordinateSpace: .named("canvas"))
-                            .onChanged { v in
-                                connectingFrom = block.id
-                                tempLineEnd = v.location
-                            }
-                            .onEnded { v in
-                                if let target = hitTestBlock(at: v.location) { onConnect(block.id, target) }
-                                connectingFrom = nil; tempLineEnd = nil
-                            }
-                    )
-                    .help("Drag to connect — output")
-                }
-                .overlay(alignment: .leading) {
-                    ZStack {
-                        Circle().fill(Color.white).frame(width: 20, height: 20).shadow(color: .black.opacity(0.2), radius: 2)
-                        Circle().fill(Color.green).frame(width: 14, height: 14)
-                        Image(systemName: "arrow.left").font(.system(size: 7, weight: .bold)).foregroundColor(.white)
-                    }
-                    .offset(x: -10, y: 0)
-                    .help("Input — drop connection here")
-                }
                 .contextMenu {
                     Button("Duplicate") { vm.duplicateBlock(id: block.id) }
                     Button("Delete", role: .destructive) { vm.deleteBlock(id: block.id) }
@@ -328,6 +321,28 @@ struct CanvasView: View {
             if rect.insetBy(dx: -10, dy: -10).contains(point) { return b.id }
         }
         return nil
+    }
+}
+
+struct ConnectionPort: View {
+    var color: Color
+    var symbol: String
+    var help: String
+
+    var body: some View {
+        ZStack {
+            Circle().fill(Color.white)
+            Circle().stroke(Color.black.opacity(0.65), lineWidth: 1)
+            Circle().fill(color).padding(3)
+            Image(systemName: symbol)
+                .font(.system(size: 8, weight: .black))
+                .foregroundColor(.white)
+        }
+        .frame(width: 26, height: 26)
+        .contentShape(Circle())
+        .shadow(color: .black.opacity(0.55), radius: 3, x: 0, y: 1)
+        .help(help)
+        .zIndex(100)
     }
 }
 
