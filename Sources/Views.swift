@@ -252,29 +252,31 @@ struct CanvasView: View {
 
     var body: some View {
         GeometryReader { geo in
-            ZStack {
-                if vm.showGrid { CanvasGrid(scale: 1).opacity(0.15) }
-                connectionsLayer
-                blocksLayer
-            }
-            .frame(width: 3000, height: 2000, alignment: .topLeading)
-            .scaleEffect(vm.scale, anchor: .topLeading)
-            .offset(vm.offset)
-            .coordinateSpace(name: "canvas")
-            .gesture(
-                DragGesture().onChanged { v in
-                    if !isPanning && v.translation.width.magnitude < 5 && v.translation.height.magnitude < 5 { return }
-                    if panOrigin == nil { panOrigin = vm.offset }
-                    isPanning = true
-                    let origin = panOrigin ?? vm.offset
-                    vm.offset = CGSize(width: origin.width + v.translation.width, height: origin.height + v.translation.height)
-                }.onEnded { _ in
-                    isPanning = false
-                    panOrigin = nil
+            ZStack(alignment: .topLeading) {
+                // Fixed viewport-sized interaction surface. It never moves with
+                // canvas content, so users can always drag back from any offset.
+                Color(nsColor: .textBackgroundColor)
+                    .contentShape(Rectangle())
+                    .gesture(panGesture)
+                    .onTapGesture {
+                        vm.selectedBlockId = nil
+                        vm.selectedConnectionId = nil
+                    }
+
+                ZStack {
+                    if vm.showGrid {
+                        CanvasGrid(scale: 1)
+                            .opacity(0.15)
+                            .allowsHitTesting(false)
+                    }
+                    connectionsLayer
+                    blocksLayer
                 }
-            )
-            .onTapGesture { vm.selectedBlockId = nil; vm.selectedConnectionId = nil }
-            .background(Color.clear)
+                .frame(width: 3000, height: 2000, alignment: .topLeading)
+                .scaleEffect(vm.scale, anchor: .topLeading)
+                .offset(vm.offset)
+            }
+            .coordinateSpace(name: "canvas")
             .onAppear { vm.viewportSize = geo.size }
             .onChange(of: geo.size) { vm.viewportSize = $0 }
         }
@@ -289,6 +291,23 @@ struct CanvasView: View {
             }
             return true
         }
+    }
+
+    private var panGesture: some Gesture {
+        DragGesture(minimumDistance: 2, coordinateSpace: .local)
+            .onChanged { value in
+                if panOrigin == nil { panOrigin = vm.offset }
+                isPanning = true
+                let origin = panOrigin ?? vm.offset
+                vm.offset = CGSize(
+                    width: origin.width + value.translation.width,
+                    height: origin.height + value.translation.height
+                )
+            }
+            .onEnded { _ in
+                isPanning = false
+                panOrigin = nil
+            }
     }
 
     private var connectionsLayer: some View {
