@@ -1,0 +1,77 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "single-task",
+    "objective": "Simple summarization",
+    "createdAt": "2026-08-31T00:00:00Z",
+    "updatedAt": "2026-08-31T00:00:00Z",
+    "description": "Simple summarization"
+  },
+  "blocks": [
+    {
+      "id": "c713db51-efb6-4e65-8b21-4fad0cdb912b",
+      "type": "objective",
+      "title": "Objective",
+      "instructions": "Summarize this article in 3 bullet points for a busy exec.",
+      "properties": {},
+      "position": {
+        "x": 100,
+        "y": 200
+      },
+      "size": {
+        "width": 260,
+        "height": 120
+      }
+    },
+    {
+      "id": "402611fb-4294-4faa-8588-9b25ce2eba20",
+      "type": "task",
+      "title": "Summarize",
+      "instructions": "Read the input article, extract 3 key points, keep each under 20 words.",
+      "properties": {},
+      "position": {
+        "x": 400,
+        "y": 200
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    },
+    {
+      "id": "38510272-b0b5-4697-a211-867b27aef158",
+      "type": "final_output",
+      "title": "Output",
+      "instructions": "Bullet list, markdown",
+      "properties": {
+        "format": "markdown"
+      },
+      "position": {
+        "x": 700,
+        "y": 200
+      },
+      "size": {
+        "width": 260,
+        "height": 120
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "e685bc9e-361a-4a0d-bed6-14a2a440b63c",
+      "from": "c713db51-efb6-4e65-8b21-4fad0cdb912b",
+      "to": "402611fb-4294-4faa-8588-9b25ce2eba20",
+      "semantics": "sequence",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "e6794c1f-7ce0-443f-9ad0-0e346c8c13ed",
+      "from": "402611fb-4294-4faa-8588-9b25ce2eba20",
+      "to": "38510272-b0b5-4697-a211-867b27aef158",
+      "semantics": "sequence",
+      "label": "",
+      "condition": ""
+    }
+  ]
+}

@@ -1,0 +1,151 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "subagents",
+    "objective": "Coordinated launch",
+    "createdAt": "2026-08-31T00:00:00Z",
+    "updatedAt": "2026-08-31T00:00:00Z",
+    "description": "Coordinated launch"
+  },
+  "blocks": [
+    {
+      "id": "df026075-f4d7-4be7-8239-d4e7c3aa9987",
+      "type": "objective",
+      "title": "Objective",
+      "instructions": "Create a product launch plan.",
+      "properties": {},
+      "position": {
+        "x": 100,
+        "y": 300
+      },
+      "size": {
+        "width": 260,
+        "height": 120
+      }
+    },
+    {
+      "id": "d78697c3-bb9d-4bbe-8cb9-ef965ed99d52",
+      "type": "main_agent",
+      "title": "Launch Lead",
+      "instructions": "Coordinate subagents and synthesize final plan.",
+      "properties": {
+        "role": "Launch Lead",
+        "responsibility": "Coordinate",
+        "constraints": "2-week timeline",
+        "skills": "planning",
+        "expectedResult": "coherent plan"
+      },
+      "position": {
+        "x": 400,
+        "y": 300
+      },
+      "size": {
+        "width": 240,
+        "height": 140
+      }
+    },
+    {
+      "id": "3501c663-701c-4d7e-8551-72a1b04c5d43",
+      "type": "subagent",
+      "title": "Researcher",
+      "instructions": "Research competitors and pricing.",
+      "properties": {
+        "role": "Researcher",
+        "responsibility": "Research"
+      },
+      "position": {
+        "x": 700,
+        "y": 150
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    },
+    {
+      "id": "e44ee040-0b87-4077-a008-fcaad56328f8",
+      "type": "subagent",
+      "title": "Writer",
+      "instructions": "Draft messaging and FAQ.",
+      "properties": {
+        "role": "Writer",
+        "responsibility": "Draft"
+      },
+      "position": {
+        "x": 700,
+        "y": 450
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    },
+    {
+      "id": "ea8a9c62-e443-4581-a782-7e63602e2deb",
+      "type": "final_output",
+      "title": "Launch Plan",
+      "instructions": "Sections: Positioning, Pricing, Channels, Timeline, Risks",
+      "properties": {
+        "format": "markdown"
+      },
+      "position": {
+        "x": 1000,
+        "y": 300
+      },
+      "size": {
+        "width": 260,
+        "height": 120
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "4ce5dc0a-01bf-4259-ab53-7fa3ac1b74f4",
+      "from": "df026075-f4d7-4be7-8239-d4e7c3aa9987",
+      "to": "d78697c3-bb9d-4bbe-8cb9-ef965ed99d52",
+      "semantics": "sequence",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "404d1b98-5f07-44fd-a7ee-617d857a09b4",
+      "from": "d78697c3-bb9d-4bbe-8cb9-ef965ed99d52",
+      "to": "3501c663-701c-4d7e-8551-72a1b04c5d43",
+      "semantics": "delegate",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "31ae73f0-d688-47a5-a043-ab74d939be6a",
+      "from": "d78697c3-bb9d-4bbe-8cb9-ef965ed99d52",
+      "to": "e44ee040-0b87-4077-a008-fcaad56328f8",
+      "semantics": "delegate",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "1a232a81-8a3e-4507-adb7-30ba7a6689ff",
+      "from": "3501c663-701c-4d7e-8551-72a1b04c5d43",
+      "to": "d78697c3-bb9d-4bbe-8cb9-ef965ed99d52",
+      "semantics": "handoff",
+      "label": "research",
+      "condition": ""
+    },
+    {
+      "id": "402485bb-b3be-4cd4-9fcc-e4fa977f49da",
+      "from": "e44ee040-0b87-4077-a008-fcaad56328f8",
+      "to": "d78697c3-bb9d-4bbe-8cb9-ef965ed99d52",
+      "semantics": "handoff",
+      "label": "draft",
+      "condition": ""
+    },
+    {
+      "id": "da728ddc-64ab-462a-9531-3cdd9d56802c",
+      "from": "d78697c3-bb9d-4bbe-8cb9-ef965ed99d52",
+      "to": "ea8a9c62-e443-4581-a782-7e63602e2deb",
+      "semantics": "sequence",
+      "label": "",
+      "condition": ""
+    }
+  ]
+}

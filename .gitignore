@@ -1,0 +1,9 @@
+# Build
+PromptDesigner.app/
+PromptDesigner-v1.0.0.zip
+*.dSYM
+.DS_Store
+# Cache
+*.o
+# Config
+.free_models_cache.json

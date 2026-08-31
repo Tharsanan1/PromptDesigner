@@ -1,0 +1,240 @@
+{
+  "version": "1.0",
+  "metadata": {
+    "name": "pipeline",
+    "objective": "Blog post pipeline",
+    "createdAt": "2026-08-31T00:00:00Z",
+    "updatedAt": "2026-08-31T00:00:00Z",
+    "description": "Blog post pipeline"
+  },
+  "blocks": [
+    {
+      "id": "f901ffc5-b885-4318-a6a1-5c6a373d7b1a",
+      "type": "objective",
+      "title": "Objective",
+      "instructions": "Research, draft, review, and polish a technical blog post.",
+      "properties": {},
+      "position": {
+        "x": 80,
+        "y": 300
+      },
+      "size": {
+        "width": 260,
+        "height": 120
+      }
+    },
+    {
+      "id": "86236de3-2fbd-46c7-a1fe-a212c609e1e7",
+      "type": "context",
+      "title": "Input",
+      "instructions": "Topic: 'AI agent workflows'. Audience: engineers. Length: 800 words.",
+      "properties": {},
+      "position": {
+        "x": 280,
+        "y": 300
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    },
+    {
+      "id": "8db807c2-ac89-4b42-9df6-fe022b2e9112",
+      "type": "main_agent",
+      "title": "Editor",
+      "instructions": "Own the post, delegate research and drafting, ensure review gate passes.",
+      "properties": {
+        "role": "Editor"
+      },
+      "position": {
+        "x": 500,
+        "y": 300
+      },
+      "size": {
+        "width": 240,
+        "height": 140
+      }
+    },
+    {
+      "id": "236381d1-8461-4743-9d7d-1d67e7342a97",
+      "type": "subagent",
+      "title": "Researcher",
+      "instructions": "Find 5 credible sources, extract key insights and citations.",
+      "properties": {},
+      "position": {
+        "x": 750,
+        "y": 150
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    },
+    {
+      "id": "0008b010-f0bd-401c-8a3c-ffbe80e1e48d",
+      "type": "subagent",
+      "title": "Drafter",
+      "instructions": "Write first draft from research, 800 words, clear headings.",
+      "properties": {},
+      "position": {
+        "x": 750,
+        "y": 450
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    },
+    {
+      "id": "4605075d-9e42-4eb3-b949-145a25785786",
+      "type": "review",
+      "title": "Review",
+      "instructions": "Check accuracy, clarity, no hallucinations, citation coverage.",
+      "properties": {
+        "standards": "accuracy, clarity, citations",
+        "approvalRequired": "true"
+      },
+      "position": {
+        "x": 1000,
+        "y": 300
+      },
+      "size": {
+        "width": 240,
+        "height": 140
+      }
+    },
+    {
+      "id": "bac0124d-1ddb-4df9-9391-c3d6e9cdd587",
+      "type": "retry",
+      "title": "Correct",
+      "instructions": "Apply reviewer feedback, fix citations and structure.",
+      "properties": {
+        "maxRetries": "3"
+      },
+      "position": {
+        "x": 1000,
+        "y": 500
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    },
+    {
+      "id": "3ae9e4f6-cfc7-4cf9-999d-411d626158a8",
+      "type": "final_output",
+      "title": "Published Post",
+      "instructions": "Markdown with title, intro, 3 sections, conclusion, references",
+      "properties": {
+        "format": "markdown"
+      },
+      "position": {
+        "x": 1250,
+        "y": 300
+      },
+      "size": {
+        "width": 260,
+        "height": 120
+      }
+    },
+    {
+      "id": "2a17a6dd-30f9-4c99-9bda-550dad550089",
+      "type": "completion",
+      "title": "Gate",
+      "instructions": "Review approval = true and all citations verified",
+      "properties": {
+        "criteria": "approval"
+      },
+      "position": {
+        "x": 1250,
+        "y": 500
+      },
+      "size": {
+        "width": 240,
+        "height": 110
+      }
+    }
+  ],
+  "connections": [
+    {
+      "id": "04c0a3e2-78d5-452f-a375-d4494babe96b",
+      "from": "f901ffc5-b885-4318-a6a1-5c6a373d7b1a",
+      "to": "86236de3-2fbd-46c7-a1fe-a212c609e1e7",
+      "semantics": "sequence",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "9ef4ac49-2488-485d-8493-652b8dcba5c1",
+      "from": "86236de3-2fbd-46c7-a1fe-a212c609e1e7",
+      "to": "8db807c2-ac89-4b42-9df6-fe022b2e9112",
+      "semantics": "handoff",
+      "label": "topic",
+      "condition": ""
+    },
+    {
+      "id": "6cc258c8-b2ee-43b1-a6ee-037dda4bad21",
+      "from": "8db807c2-ac89-4b42-9df6-fe022b2e9112",
+      "to": "236381d1-8461-4743-9d7d-1d67e7342a97",
+      "semantics": "delegate",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "c9d1865b-a177-4804-802d-6c689bc7ef79",
+      "from": "8db807c2-ac89-4b42-9df6-fe022b2e9112",
+      "to": "0008b010-f0bd-401c-8a3c-ffbe80e1e48d",
+      "semantics": "delegate",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "f9c9c377-870d-4061-b33b-c0ce853e9fac",
+      "from": "236381d1-8461-4743-9d7d-1d67e7342a97",
+      "to": "0008b010-f0bd-401c-8a3c-ffbe80e1e48d",
+      "semantics": "handoff",
+      "label": "insights",
+      "condition": ""
+    },
+    {
+      "id": "5338bd54-26a2-4103-b54e-5714ec7de9fd",
+      "from": "0008b010-f0bd-401c-8a3c-ffbe80e1e48d",
+      "to": "4605075d-9e42-4eb3-b949-145a25785786",
+      "semantics": "review",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "1e71b1b7-4522-4ab6-877a-7ab5c9524e08",
+      "from": "4605075d-9e42-4eb3-b949-145a25785786",
+      "to": "bac0124d-1ddb-4df9-9391-c3d6e9cdd587",
+      "semantics": "condition_false",
+      "label": "needs fix",
+      "condition": ""
+    },
+    {
+      "id": "013ebec3-8dd9-455f-8e47-13399bf0781d",
+      "from": "bac0124d-1ddb-4df9-9391-c3d6e9cdd587",
+      "to": "4605075d-9e42-4eb3-b949-145a25785786",
+      "semantics": "correction",
+      "label": "",
+      "condition": ""
+    },
+    {
+      "id": "b22f378e-875b-4a29-a80f-c55a49665248",
+      "from": "4605075d-9e42-4eb3-b949-145a25785786",
+      "to": "3ae9e4f6-cfc7-4cf9-999d-411d626158a8",
+      "semantics": "condition_true",
+      "label": "approved",
+      "condition": ""
+    },
+    {
+      "id": "cc40318a-f3e0-4801-958f-9ca78d15e671",
+      "from": "3ae9e4f6-cfc7-4cf9-999d-411d626158a8",
+      "to": "2a17a6dd-30f9-4c99-9bda-550dad550089",
+      "semantics": "sequence",
+      "label": "",
+      "condition": ""
+    }
+  ]
+}
