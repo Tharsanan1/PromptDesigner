@@ -63,8 +63,13 @@ struct ContentView: View {
                         Text("\(Int(vm.scale*100))%").font(.caption).monospacedDigit()
                         Button(action: { vm.scale = min(2.0, vm.scale + 0.1) }) { Image(systemName: "plus.magnifyingglass") }
                         Button("Reset") { vm.scale = 1; vm.offset = .zero }
+                        Button(action: { vm.fitAll() }) { Label("Fit All", systemImage: "arrow.up.left.and.arrow.down.right") }
+                            .help("Center all blocks in the visible canvas")
                         Toggle("Grid", isOn: $vm.showGrid)
                         Toggle("Minimap", isOn: $vm.showMinimap)
+                        Label("Drag empty canvas to pan", systemImage: "hand.draw")
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
                         Text("Ports v2.1").font(.caption2).padding(4).background(Color.green.opacity(0.2)).cornerRadius(4)
                         if vm.hasSelection {
                             Divider().frame(height: 18)
@@ -243,7 +248,7 @@ struct CanvasView: View {
 
     @State private var dragStart: CGPoint?
     @State private var isPanning = false
-    @State private var panStart: CGSize = .zero
+    @State private var panOrigin: CGSize?
 
     var body: some View {
         GeometryReader { geo in
@@ -259,14 +264,19 @@ struct CanvasView: View {
             .gesture(
                 DragGesture().onChanged { v in
                     if !isPanning && v.translation.width.magnitude < 5 && v.translation.height.magnitude < 5 { return }
-                    if vm.selectedBlockId == nil {
-                        isPanning = true
-                        vm.offset = CGSize(width: panStart.width + v.translation.width, height: panStart.height + v.translation.height)
-                    }
-                }.onEnded { _ in isPanning = false; panStart = vm.offset }
+                    if panOrigin == nil { panOrigin = vm.offset }
+                    isPanning = true
+                    let origin = panOrigin ?? vm.offset
+                    vm.offset = CGSize(width: origin.width + v.translation.width, height: origin.height + v.translation.height)
+                }.onEnded { _ in
+                    isPanning = false
+                    panOrigin = nil
+                }
             )
             .onTapGesture { vm.selectedBlockId = nil; vm.selectedConnectionId = nil }
             .background(Color.clear)
+            .onAppear { vm.viewportSize = geo.size }
+            .onChange(of: geo.size) { vm.viewportSize = $0 }
         }
         .clipped()
         .onDrop(of: [UTType.plainText], isTargeted: nil) { providers in

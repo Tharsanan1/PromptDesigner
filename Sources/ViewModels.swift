@@ -8,6 +8,7 @@ final class CanvasViewModel: ObservableObject {
     @Published var selectedConnectionId: String?
     @Published var scale: CGFloat = 1.0
     @Published var offset: CGSize = .zero
+    @Published var viewportSize: CGSize = .zero
     @Published var showGrid = true
     @Published var showMinimap = false
     @Published var validationIssues: [ValidationIssue] = []
@@ -34,6 +35,24 @@ final class CanvasViewModel: ObservableObject {
     var selectedBlock: Block? {
         guard let id = selectedBlockId else { return nil }
         return workflow.block(withId: id)
+    }
+
+    func fitAll() {
+        guard !workflow.blocks.isEmpty, viewportSize.width > 0, viewportSize.height > 0 else { return }
+        let minX = workflow.blocks.map { $0.position.x }.min() ?? 0
+        let minY = workflow.blocks.map { $0.position.y }.min() ?? 0
+        let maxX = workflow.blocks.map { $0.position.x + $0.size.width }.max() ?? 1
+        let maxY = workflow.blocks.map { $0.position.y + $0.size.height }.max() ?? 1
+        let contentWidth = max(1, maxX - minX)
+        let contentHeight = max(1, maxY - minY)
+        let padding: CGFloat = 90
+        let availableWidth = max(100, viewportSize.width - padding * 2)
+        let availableHeight = max(100, viewportSize.height - padding * 2)
+        scale = min(1.5, max(0.25, min(availableWidth / contentWidth, availableHeight / contentHeight)))
+        offset = CGSize(
+            width: (viewportSize.width - contentWidth * scale) / 2 - minX * scale,
+            height: (viewportSize.height - contentHeight * scale) / 2 - minY * scale
+        )
     }
 
     // MARK: - History
