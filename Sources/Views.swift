@@ -211,11 +211,11 @@ struct CanvasView: View {
     var body: some View {
         GeometryReader { geo in
             ZStack {
-                if vm.showGrid { CanvasGrid(scale: vm.scale).opacity(0.15) }
+                if vm.showGrid { CanvasGrid(scale: 1).opacity(0.15) }
                 connectionsLayer
                 blocksLayer
             }
-            .frame(width: max(2000 * vm.scale, geo.size.width), height: max(1200 * vm.scale, geo.size.height), alignment: .topLeading)
+            .frame(width: 3000, height: 2000, alignment: .topLeading)
             .scaleEffect(vm.scale, anchor: .topLeading)
             .offset(vm.offset)
             .coordinateSpace(name: "canvas")
@@ -279,21 +279,34 @@ struct CanvasView: View {
                 )
                 .onTapGesture { vm.selectedBlockId = block.id; vm.selectedConnectionId = nil }
                 .overlay(alignment: .trailing) {
-                    Circle().fill(Color.accentColor).frame(width: 12, height: 12).offset(x: 6, y: 0)
-                        .gesture(
-                            DragGesture(coordinateSpace: .named("canvas"))
-                                .onChanged { v in
-                                    connectingFrom = block.id
-                                    tempLineEnd = v.location
-                                }
-                                .onEnded { v in
-                                    if let target = hitTestBlock(at: v.location) { onConnect(block.id, target) }
-                                    connectingFrom = nil; tempLineEnd = nil
-                                }
-                        )
+                    ZStack {
+                        Circle().fill(Color.white).frame(width: 20, height: 20).shadow(color: .black.opacity(0.2), radius: 2)
+                        Circle().fill(Color.accentColor).frame(width: 14, height: 14)
+                        Image(systemName: "arrow.right").font(.system(size: 7, weight: .bold)).foregroundColor(.white)
+                    }
+                    .offset(x: 10, y: 0)
+                    .contentShape(Circle())
+                    .gesture(
+                        DragGesture(coordinateSpace: .named("canvas"))
+                            .onChanged { v in
+                                connectingFrom = block.id
+                                tempLineEnd = v.location
+                            }
+                            .onEnded { v in
+                                if let target = hitTestBlock(at: v.location) { onConnect(block.id, target) }
+                                connectingFrom = nil; tempLineEnd = nil
+                            }
+                    )
+                    .help("Drag to connect — output")
                 }
                 .overlay(alignment: .leading) {
-                    Circle().fill(Color.secondary).frame(width: 10, height: 10).offset(x: -5, y: 0)
+                    ZStack {
+                        Circle().fill(Color.white).frame(width: 20, height: 20).shadow(color: .black.opacity(0.2), radius: 2)
+                        Circle().fill(Color.green).frame(width: 14, height: 14)
+                        Image(systemName: "arrow.left").font(.system(size: 7, weight: .bold)).foregroundColor(.white)
+                    }
+                    .offset(x: -10, y: 0)
+                    .help("Input — drop connection here")
                 }
                 .contextMenu {
                     Button("Duplicate") { vm.duplicateBlock(id: block.id) }
@@ -303,6 +316,13 @@ struct CanvasView: View {
     }
 
     func hitTestBlock(at point: CGPoint) -> String? {
+        // point is in canvas space (after scale+offset); convert to logical
+        let logical = CGPoint(x: (point.x - vm.offset.width) / vm.scale, y: (point.y - vm.offset.height) / vm.scale)
+        for b in vm.workflow.blocks {
+            let rect = CGRect(origin: b.position, size: b.size)
+            if rect.insetBy(dx: -10, dy: -10).contains(logical) { return b.id }
+        }
+        // Fallback: try without conversion (in case coordinate space is unscaled)
         for b in vm.workflow.blocks {
             let rect = CGRect(origin: b.position, size: b.size)
             if rect.insetBy(dx: -10, dy: -10).contains(point) { return b.id }
@@ -425,6 +445,8 @@ struct InspectorView: View {
     @ObservedObject var vm: CanvasViewModel
     @State private var editingInstructions = ""
     @State private var editingTitle = ""
+    @State private var connectTargetId: String = ""
+    @State private var connectSemantics: ConnectionSemantics = .sequence
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -486,6 +508,25 @@ struct InspectorView: View {
                                 Text("No connections").font(.caption2).foregroundColor(.secondary)
                             }
                         }
+                        Divider()
+                        VStack(alignment: .leading, spacing: 6) {
+                            Text("Create Connection").font(.caption).bold()
+                            Text("Drag ● (right, blue) → ○ (left, green) or use below").font(.caption2).foregroundColor(.secondary)
+                            Picker("To", selection: $connectTargetId) {
+                                Text("Select target…").tag("")
+                                ForEach(vm.workflow.blocks.filter { $0.id != block.id }) { b in
+                                    Text(b.title).tag(b.id)
+                                }
+                            }.pickerStyle(.menu).font(.caption)
+                            Picker("As", selection: $connectSemantics) {
+                                ForEach(ConnectionSemantics.allCases) { s in Text(s.displayName).tag(s) }
+                            }.pickerStyle(.menu).font(.caption)
+                            Button("Connect") {
+                                guard !connectTargetId.isEmpty else { return }
+                                vm.addConnection(from: block.id, to: connectTargetId, semantics: connectSemantics)
+                                connectTargetId = ""
+                            }.disabled(connectTargetId.isEmpty).font(.caption)
+                        }.padding(6).background(Color(nsColor: .controlBackgroundColor)).cornerRadius(6)
                     }.padding(8)
                 }
             } else if let cid = vm.selectedConnectionId, let conn = vm.workflow.connections.first(where: { $0.id == cid }) {
