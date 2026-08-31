@@ -56,6 +56,10 @@ struct PromptDesignerApp: App {
                 Button("Redo") { vm.redo() }.keyboardShortcut("z", modifiers: [.command, .shift]).disabled(!vm.canRedo)
             }
             CommandMenu("Workflow") {
+                Button("Delete Selection") { vm.deleteSelection() }
+                    .keyboardShortcut(.delete, modifiers: [])
+                    .disabled(!vm.hasSelection)
+                Divider()
                 Button("Validate") { vm.validate() }
                 Button("Copy Prompt") {
                     if let r = compilerResult { copyToClipboard(r.prompt) }

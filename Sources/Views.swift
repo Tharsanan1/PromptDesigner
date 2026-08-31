@@ -66,6 +66,13 @@ struct ContentView: View {
                         Toggle("Grid", isOn: $vm.showGrid)
                         Toggle("Minimap", isOn: $vm.showMinimap)
                         Text("Ports v2.1").font(.caption2).padding(4).background(Color.green.opacity(0.2)).cornerRadius(4)
+                        if vm.hasSelection {
+                            Divider().frame(height: 18)
+                            Button(role: .destructive, action: { vm.deleteSelection() }) {
+                                Label("Delete", systemImage: "trash")
+                            }
+                            .help("Delete selected block or connection (Delete key)")
+                        }
                         Spacer()
                         Text("\(vm.workflow.blocks.count) blocks • \(vm.workflow.connections.count) connections").font(.caption).foregroundColor(.secondary)
                     }.padding(8).background(.thinMaterial).cornerRadius(8).padding(8)
@@ -333,12 +340,12 @@ struct ConnectionPort: View {
         ZStack {
             Circle().fill(Color.white)
             Circle().stroke(Color.black.opacity(0.65), lineWidth: 1)
-            Circle().fill(color).padding(3)
+            Circle().fill(color).padding(2.5)
             Image(systemName: symbol)
-                .font(.system(size: 8, weight: .black))
+                .font(.system(size: 7, weight: .black))
                 .foregroundColor(.white)
         }
-        .frame(width: 26, height: 26)
+        .frame(width: 20, height: 20)
         .contentShape(Circle())
         .shadow(color: .black.opacity(0.55), radius: 3, x: 0, y: 1)
         .help(help)
@@ -389,12 +396,16 @@ struct ConnectionShape: View {
 
     var body: some View {
         let midX = (from.x + to.x)/2
-        Path { p in
+        let curve = Path { p in
             p.move(to: from)
             p.addCurve(to: to, control1: CGPoint(x: midX, y: from.y), control2: CGPoint(x: midX, y: to.y))
         }
-        .stroke(semantics.color, style: StrokeStyle(lineWidth: isSelected ? 3 : 1.5, lineCap: .round, dash: semantics.dash))
-        .overlay {
+        ZStack {
+            // The visible line stays precise, while this wide transparent line
+            // provides a forgiving click/right-click target.
+            curve.stroke(Color.white.opacity(0.001), style: StrokeStyle(lineWidth: 18, lineCap: .round))
+            curve.stroke(semantics.color, style: StrokeStyle(lineWidth: isSelected ? 4 : 2, lineCap: .round, dash: semantics.dash))
+
             // Arrow head
             let angle = atan2(to.y - from.y, to.x - from.x)
             Path { p in
@@ -403,11 +414,16 @@ struct ConnectionShape: View {
                 p.addLine(to: CGPoint(x: to.x - len*cos(angle - .pi/6), y: to.y - len*sin(angle - .pi/6)))
                 p.move(to: to)
                 p.addLine(to: CGPoint(x: to.x - len*cos(angle + .pi/6), y: to.y - len*sin(angle + .pi/6)))
-            }.stroke(semantics.color, lineWidth: isSelected ? 3 : 1.5)
-        }
-        .overlay {
+            }.stroke(semantics.color, lineWidth: isSelected ? 4 : 2)
+
             if !label.isEmpty {
-                Text(label).font(.caption2).padding(2).background(.thinMaterial).cornerRadius(4)
+                Text(label)
+                    .font(.caption2.weight(.medium))
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 3)
+                    .background(.regularMaterial)
+                    .overlay(Capsule().stroke(isSelected ? semantics.color : Color.secondary.opacity(0.35)))
+                    .clipShape(Capsule())
                     .position(x: (from.x+to.x)/2, y: (from.y+to.y)/2 - 10)
             }
         }

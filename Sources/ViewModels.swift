@@ -154,6 +154,18 @@ final class CanvasViewModel: ObservableObject {
         if selectedConnectionId == id { selectedConnectionId = nil }
     }
 
+    func deleteSelection() {
+        if let id = selectedBlockId {
+            deleteBlock(id: id)
+        } else if let id = selectedConnectionId {
+            deleteConnection(id: id)
+        }
+    }
+
+    var hasSelection: Bool {
+        selectedBlockId != nil || selectedConnectionId != nil
+    }
+
     // MARK: - Validation
 
     func validate() {
